@@ -66,3 +66,59 @@ func Test_NewClient(t *testing.T) {
 		})
 	}
 }
+
+func Test_Host(t *testing.T) {
+	cases := []struct {
+		name   string
+		c      *alago.Client
+		expect string
+	}{
+		{
+			name:   "ok",
+			c:      alago.NewClientWithClientAndHost(http.DefaultClient, "test-host"),
+			expect: "test-host",
+		},
+		{
+			name:   "ok: nil",
+			c:      nil,
+			expect: "",
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(tt *testing.T) {
+			asst := assert.New(tt)
+
+			h := c.c.Host()
+			asst.Equal(c.expect, h)
+		})
+	}
+}
+
+func Test_HttpClient(t *testing.T) {
+	cases := []struct {
+		name   string
+		c      *alago.Client
+		expect *http.Client
+	}{
+		{
+			name:   "ok",
+			c:      alago.NewClientWithClientAndHost(http.DefaultClient, "test-host"),
+			expect: http.DefaultClient,
+		},
+		{
+			name:   "ok: nil",
+			c:      nil,
+			expect: nil,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(tt *testing.T) {
+			asst := assert.New(tt)
+
+			hc := c.c.HttpClient()
+			asst.Equal(c.expect, hc)
+		})
+	}
+}
