@@ -15,6 +15,11 @@ var (
 	defaultHttpClient *http.Client = http.DefaultClient
 )
 
+type AlagoClient interface {
+	Host() string
+	HttpClient() *http.Client
+}
+
 // Client is the struct for call runtime api.
 type Client struct {
 	// http.Client for call runtime api
@@ -54,4 +59,18 @@ func NewClient(in *NewClientInput) (*Client, error) {
 		c:    c,
 		host: host,
 	}, nil
+}
+
+func (c *Client) Host() string {
+	if c == nil {
+		return ""
+	}
+	return c.host
+}
+
+func (c *Client) HttpClient() *http.Client {
+	if c == nil {
+		return nil
+	}
+	return c.c
 }
