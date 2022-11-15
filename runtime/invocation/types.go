@@ -43,10 +43,6 @@ func (o *NextOutput) UnmarshalEventResponse(target any) error {
 		return errors.New("Receiver is nil.")
 	}
 
-	if target == nil {
-		return errors.New("target is nil.")
-	}
-
 	if err := json.Unmarshal(o.RawEventResponse, target); err != nil {
 		return err
 	}

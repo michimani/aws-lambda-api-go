@@ -46,19 +46,6 @@ func Test_EventResponse(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "ng: target is nil",
-			o: &invocation.NextOutput{
-				RawEventResponse: []byte(`{"eventName":"test", "count":100, "isTest":true}`),
-			},
-			target: nil,
-			expect: testEvent{
-				EventName: "test",
-				Count:     100,
-				IsTest:    true,
-			},
-			wantErr: true,
-		},
-		{
 			name: "ng: failed to unmarshal json",
 			o: &invocation.NextOutput{
 				RawEventResponse: []byte(`///`),
