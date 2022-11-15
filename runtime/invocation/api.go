@@ -30,36 +30,34 @@ func InvocationNext(ctx context.Context, client alago.AlagoClient) (*NextOutput,
 		return nil, err
 	}
 
+	out, err := generateNextOutput(sc, h, b)
+	if err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
+
+func generateNextOutput(sc int, header http.Header, body []byte) (*NextOutput, error) {
 	out := NextOutput{}
 	out.StatusCode = sc
 
 	if sc != http.StatusOK {
 		var errRes runtime.ErrorResponse
-		if err := json.Unmarshal(b, errRes); err != nil {
+		if err := json.Unmarshal(body, &errRes); err != nil {
 			return nil, err
 		}
 		out.Error = &errRes
 		return &out, nil
 	}
 
-	if v, ok := h[responseHeaderLambdaRuntimeAwsRequestId]; ok && len(v) > 0 {
-		out.AWSRequestID = &v[0]
-	}
-	if v, ok := h[responseHeaderLambdaRuntimeTraceId]; ok && len(v) > 0 {
-		out.TraceID = &v[0]
-	}
-	if v, ok := h[responseHeaderLambdaRuntimeClientContext]; ok && len(v) > 0 {
-		out.ClientContext = &v[0]
-	}
-	if v, ok := h[responseHeaderLambdaRuntimeCognitoIdentity]; ok && len(v) > 0 {
-		out.CognitoIdentity = &v[0]
-	}
-	if v, ok := h[responseHeaderLambdaRuntimeDeadlineMs]; ok && len(v) > 0 {
-		out.DeadlineMs = &v[0]
-	}
-	if v, ok := h[responseHeaderLambdaRuntimeInvokedFunctionArn]; ok && len(v) > 0 {
-		out.InvokedFunctionArn = &v[0]
-	}
+	out.AWSRequestID = header.Get(responseHeaderLambdaRuntimeAwsRequestId)
+	out.TraceID = header.Get(responseHeaderLambdaRuntimeTraceId)
+	out.ClientContext = header.Get(responseHeaderLambdaRuntimeClientContext)
+	out.CognitoIdentity = header.Get(responseHeaderLambdaRuntimeCognitoIdentity)
+	out.DeadlineMs = header.Get(responseHeaderLambdaRuntimeDeadlineMs)
+	out.InvokedFunctionArn = header.Get(responseHeaderLambdaRuntimeInvokedFunctionArn)
+	out.RawEventResponse = body
 
 	return &out, nil
 }

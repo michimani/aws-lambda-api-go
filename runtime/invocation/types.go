@@ -12,22 +12,22 @@ type NextOutput struct {
 	StatusCode int
 
 	// AWS request ID associated with the request.
-	AWSRequestID *string
+	AWSRequestID string
 
 	// X-Ray tracing header.
-	TraceID *string
+	TraceID string
 
 	// Information about the client application and device when invoked	through the AWS Mobile SDK.
-	ClientContext *string
+	ClientContext string
 
 	// Information about the Amazon Cognito identity provider when invoked through the AWS Mobile SDK.
-	CognitoIdentity *string
+	CognitoIdentity string
 
 	// Function execution deadline counted in milliseconds since the Unix epoch.
-	DeadlineMs *string
+	DeadlineMs string
 
 	// The ARN requested. This can be different in each invoke that	executes the same version.
-	InvokedFunctionArn *string
+	InvokedFunctionArn string
 
 	// The bytes of EventResponse.
 	RawEventResponse []byte
