@@ -353,6 +353,13 @@ func Test_generateResponseOutput(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name:       "ng: failed to unmarshal ok response",
+			statusCode: 202,
+			body:       []byte(`///`),
+			expect:     nil,
+			wantErr:    true,
+		},
+		{
 			name:       "ng: failed to unmarshal error response",
 			statusCode: 403,
 			body:       []byte(`///`),
