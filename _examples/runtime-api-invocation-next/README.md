@@ -3,19 +3,16 @@ Runtime API Example - GET /runtime/invocation/next
 
 # Usage
 
-0. Build image
+1. Start Lambda
 
     ```bash
-    docker build -t runtime-api-invocation-next:local .
+    make build-run
     ```
-
-1. Run the image
-
+    
+    If you have already built the image, you can start Lambda with the following command
+    
     ```bash
-    docker run \
-    --rm \
-    -p 9000:8080 \
-    runtime-api-invocation-next:local
+    make run
     ```
 
 2. Invoke function
