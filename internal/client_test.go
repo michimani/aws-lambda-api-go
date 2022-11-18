@@ -2,13 +2,12 @@ package internal_test
 
 import (
 	"context"
-	"io"
 	"net/http"
-	"strings"
 	"testing"
 
 	"github.com/michimani/aws-lambda-api-go/alago"
 	"github.com/michimani/aws-lambda-api-go/internal"
+	"github.com/michimani/http-client-mock/hcmock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,12 +28,12 @@ func Test_CallAPI(t *testing.T) {
 	}{
 		{
 			name: "ok",
-			httpClient: newMockHTTPClient(&mockInput{
-				ResponseStatusCode: 200,
-				ResponseHeader: map[string][]string{
-					"Test-Header-Name": {"test-header-value"},
+			httpClient: hcmock.New(&hcmock.MockInput{
+				StatusCode: 200,
+				Headers: []hcmock.Header{
+					{Key: "Test-Header-Name", Value: "test-header-value"},
 				},
-				ResponseBody: io.NopCloser(strings.NewReader(`{"message": "test"}`)),
+				BodyBytes: []byte(`{"message": "test"}`),
 			}),
 			method: "GET",
 			url:    "https://example.com",
@@ -49,12 +48,12 @@ func Test_CallAPI(t *testing.T) {
 		},
 		{
 			name: "ok: empty response body",
-			httpClient: newMockHTTPClient(&mockInput{
-				ResponseStatusCode: 200,
-				ResponseHeader: map[string][]string{
-					"Test-Header-Name": {"test-header-value"},
+			httpClient: hcmock.New(&hcmock.MockInput{
+				StatusCode: 200,
+				Headers: []hcmock.Header{
+					{Key: "Test-Header-Name", Value: "test-header-value"},
 				},
-				ResponseBody: nil,
+				BodyBytes: nil,
 			}),
 			method: "GET",
 			url:    "https://example.com",
@@ -69,12 +68,12 @@ func Test_CallAPI(t *testing.T) {
 		},
 		{
 			name: "ng: failed to create request",
-			httpClient: newMockHTTPClient(&mockInput{
-				ResponseStatusCode: 200,
-				ResponseHeader: map[string][]string{
-					"Test-Header-Name": {"test-header-value"},
+			httpClient: hcmock.New(&hcmock.MockInput{
+				StatusCode: 200,
+				Headers: []hcmock.Header{
+					{Key: "Test-Header-Name", Value: "test-header-value"},
 				},
-				ResponseBody: io.NopCloser(strings.NewReader(`{"message": "test"}`)),
+				BodyBytes: []byte(`{"message": "test"}`),
 			}),
 			method: "invalid method",
 			url:    "https://example.com",
@@ -89,12 +88,12 @@ func Test_CallAPI(t *testing.T) {
 		},
 		{
 			name: "ng: failed to do request",
-			httpClient: newMockHTTPClient(&mockInput{
-				ResponseStatusCode: 200,
-				ResponseHeader: map[string][]string{
-					"Test-Header-Name": {"test-header-value"},
+			httpClient: hcmock.New(&hcmock.MockInput{
+				StatusCode: 200,
+				Headers: []hcmock.Header{
+					{Key: "Test-Header-Name", Value: "test-header-value"},
 				},
-				ResponseBody: io.NopCloser(strings.NewReader(`{"message": "test"}`)),
+				BodyBytes: []byte(`{"message": "test"}`),
 			}),
 			method: "GET",
 			url:    "\U00000000",
