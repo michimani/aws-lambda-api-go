@@ -23,6 +23,9 @@ const (
 	responseHeaderLambdaRuntimeInvokedFunctionArn string = "Lambda-Runtime-Invoked-Function-Arn"
 )
 
+// Runtime makes this HTTP request when it is ready to receive and process a new invoke.
+//
+// document: https://docs.aws.amazon.com/lambda/latest/dg/runtimes-api.html#runtimes-api-next
 func InvocationNext(ctx context.Context, client alago.AlagoClient) (*NextOutput, error) {
 	url := fmt.Sprintf(invocationNextEndpointFmt, client.Host())
 	sc, h, b, err := internal.CallAPI(context.Background(), client, http.MethodGet, url, nil)
