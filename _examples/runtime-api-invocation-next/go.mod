@@ -6,3 +6,5 @@ require (
 	github.com/aws/aws-lambda-go v1.34.1
 	github.com/michimani/aws-lambda-api-go v0.0.0
 )
+
+replace github.com/michimani/aws-lambda-api-go v0.0.0 => ../../

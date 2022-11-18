@@ -3,6 +3,7 @@ package invocation
 import (
 	"encoding/json"
 	"errors"
+	"io"
 
 	"github.com/michimani/aws-lambda-api-go/runtime"
 )
@@ -48,4 +49,27 @@ func (o *NextOutput) UnmarshalEventResponse(target any) error {
 	}
 
 	return nil
+}
+
+// ResponseInput is the struct for parameter of
+// POST /runtime/invocation/{AwsRequestId}/response API.
+type ResponseInput struct {
+	// AWS request ID associated with the request.
+	AWSRequestID string
+
+	// Any data that will be returned after the function has run to completion.
+	Response io.Reader
+}
+
+// ResponseOutput is the struct for response of
+// POST /runtime/invocation/{AwsRequestId}/response API.
+type ResponseOutput struct {
+	// http status code
+	StatusCode int `json:"-"`
+
+	// status
+	Status string `json:"status"`
+
+	// The error response
+	Error *runtime.ErrorResponse `json:"-"`
 }

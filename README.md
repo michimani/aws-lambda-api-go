@@ -12,7 +12,7 @@ This is a client library for Go language to use AWS Lambda's Runtime API, Extens
 [AWS Lambda runtime API - AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-api.html)
 
 - [x] `GET /runtime/invocation/next`
-- [ ] `POST /runtime/invocation/:AwsRequestId/response`
+- [x] `POST /runtime/invocation/:AwsRequestId/response`
 - [ ] `POST /runtime/init/error`
 - [ ] `POST /runtime/invocation/:AwsRequestId/error`
 

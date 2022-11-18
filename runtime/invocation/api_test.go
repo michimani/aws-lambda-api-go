@@ -200,3 +200,187 @@ func Test_generateNextOutput(t *testing.T) {
 		})
 	}
 }
+
+func Test_InvocationResponse(t *testing.T) {
+	cases := []struct {
+		name       string
+		httpClient *http.Client
+		in         *invocation.ResponseInput
+		host       string
+		expect     *invocation.ResponseOutput
+		wantErr    bool
+	}{
+		{
+			name: "ok",
+			httpClient: newMockHTTPClient(&mockInput{
+				ResponseStatusCode: 202,
+				ResponseBody:       io.NopCloser(strings.NewReader(`{"status":"test-status"}`)),
+			}),
+			in: &invocation.ResponseInput{
+				AWSRequestID: "test-request-id",
+				Response:     strings.NewReader("test-response"),
+			},
+			host: "test-host",
+			expect: &invocation.ResponseOutput{
+				StatusCode: 202,
+				Status:     "test-status",
+			},
+			wantErr: false,
+		},
+		{
+			name: "ng: CallAPI returns error",
+			httpClient: newMockHTTPClient(&mockInput{
+				ResponseStatusCode: 202,
+				ResponseBody:       io.NopCloser(strings.NewReader(`{"status":"test-status"}`)),
+			}),
+			in: &invocation.ResponseInput{
+				AWSRequestID: "test-request-id",
+				Response:     strings.NewReader("test-response"),
+			},
+			host:    "\U00000001",
+			expect:  nil,
+			wantErr: true,
+		},
+		{
+			name: "ng: AWSRequestID is empty",
+			httpClient: newMockHTTPClient(&mockInput{
+				ResponseStatusCode: 202,
+				ResponseBody:       io.NopCloser(strings.NewReader(`{"status":"test-status"}`)),
+			}),
+			in: &invocation.ResponseInput{
+				Response: strings.NewReader("test-response"),
+			},
+			host:    "test-host",
+			expect:  nil,
+			wantErr: true,
+		},
+		{
+			name: "ng: Response is nil",
+			httpClient: newMockHTTPClient(&mockInput{
+				ResponseStatusCode: 202,
+				ResponseBody:       io.NopCloser(strings.NewReader(`{"status":"test-status"}`)),
+			}),
+			in: &invocation.ResponseInput{
+				AWSRequestID: "test-request-id",
+			},
+			host:    "test-host",
+			expect:  nil,
+			wantErr: true,
+		},
+		{
+			name: "ng: ResponseInput is nil",
+			httpClient: newMockHTTPClient(&mockInput{
+				ResponseStatusCode: 202,
+				ResponseBody:       io.NopCloser(strings.NewReader(`{"status":"test-status"}`)),
+			}),
+			in:      nil,
+			host:    "test-host",
+			expect:  nil,
+			wantErr: true,
+		},
+		{
+			name: "ng: generateResponseOutput returns error",
+			httpClient: newMockHTTPClient(&mockInput{
+				ResponseStatusCode: 403,
+				ResponseBody:       io.NopCloser(strings.NewReader(`///`)),
+			}),
+			in: &invocation.ResponseInput{
+				AWSRequestID: "test-request-id",
+				Response:     strings.NewReader("test-response"),
+			},
+			host:    "test-host",
+			expect:  nil,
+			wantErr: true,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(tt *testing.T) {
+			asst := assert.New(tt)
+			tt.Setenv("AWS_LAMBDA_RUNTIME_API", c.host)
+
+			ac, err := alago.NewClient(&alago.NewClientInput{
+				HttpClient: c.httpClient,
+			})
+
+			asst.NoError(err)
+
+			out, err := invocation.InvocationResponse(context.Background(), ac, c.in)
+			if c.wantErr {
+				asst.Error(err, err)
+				asst.Nil(out)
+				return
+			}
+
+			asst.NoError(err)
+			asst.NotNil(out)
+			asst.Equal(*c.expect, *out)
+			asst.Equal(*c.expect, *out)
+			asst.Equal(*c.expect, *out)
+		})
+	}
+}
+
+func Test_generateResponseOutput(t *testing.T) {
+	cases := []struct {
+		name       string
+		statusCode int
+		body       []byte
+		expect     *invocation.ResponseOutput
+		wantErr    bool
+	}{
+		{
+			name:       "ok",
+			statusCode: 202,
+			body:       []byte(`{"status":"test-status"}`),
+			expect: &invocation.ResponseOutput{
+				StatusCode: 202,
+				Status:     "test-status",
+			},
+			wantErr: false,
+		},
+		{
+			name:       "ok: not OK status code",
+			statusCode: 403,
+			body:       []byte(`{"errorMessage":"test-error-message", "errorType":"test-error-type"}`),
+			expect: &invocation.ResponseOutput{
+				StatusCode: 403,
+				Error: &runtime.ErrorResponse{
+					ErrorMessage: "test-error-message",
+					ErrorType:    "test-error-type",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name:       "ng: failed to unmarshal ok response",
+			statusCode: 202,
+			body:       []byte(`///`),
+			expect:     nil,
+			wantErr:    true,
+		},
+		{
+			name:       "ng: failed to unmarshal error response",
+			statusCode: 403,
+			body:       []byte(`///`),
+			expect:     nil,
+			wantErr:    true,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(tt *testing.T) {
+			asst := assert.New(tt)
+
+			out, err := invocation.Exported_generateResponseOutput(c.statusCode, c.body)
+			if c.wantErr {
+				asst.Error(err)
+				asst.Nil(out)
+				return
+			}
+
+			asst.NoError(err)
+			asst.Equal(*c.expect, *out)
+		})
+	}
+}

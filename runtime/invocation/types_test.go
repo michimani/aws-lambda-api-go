@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_EventResponse(t *testing.T) {
+func Test_UnmarshalEventResponse(t *testing.T) {
 	type testEvent struct {
 		EventName string `json:"eventName"`
 		Count     int    `json:"count"`
