@@ -2,7 +2,6 @@ package invocation_test
 
 import (
 	"context"
-	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -10,6 +9,7 @@ import (
 	"github.com/michimani/aws-lambda-api-go/alago"
 	"github.com/michimani/aws-lambda-api-go/runtime"
 	"github.com/michimani/aws-lambda-api-go/runtime/invocation"
+	"github.com/michimani/http-client-mock/hcmock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,17 +23,17 @@ func Test_InvocationNext(t *testing.T) {
 	}{
 		{
 			name: "ok",
-			httpClient: newMockHTTPClient(&mockInput{
-				ResponseStatusCode: 200,
-				ResponseHeader: map[string][]string{
-					"Lambda-Runtime-Aws-Request-Id":       {"lambda-runtime-aws-request-id"},
-					"Lambda-Runtime-Trace-Id":             {"lambda-runtime-trace-id"},
-					"Lambda-Runtime-Client-Context":       {"lambda-runtime-client-context"},
-					"Lambda-Runtime-Cognito-Identity":     {"lambda-runtime-cognito-identity"},
-					"Lambda-Runtime-Deadline-Ms":          {"lambda-runtime-deadline-ms"},
-					"Lambda-Runtime-Invoked-Function-Arn": {"lambda-runtime-invoked-function-arn"},
+			httpClient: hcmock.New(&hcmock.MockInput{
+				StatusCode: 200,
+				Headers: []hcmock.Header{
+					{Key: "Lambda-Runtime-Aws-Request-Id", Value: "lambda-runtime-aws-request-id"},
+					{Key: "Lambda-Runtime-Trace-Id", Value: "lambda-runtime-trace-id"},
+					{Key: "Lambda-Runtime-Client-Context", Value: "lambda-runtime-client-context"},
+					{Key: "Lambda-Runtime-Cognito-Identity", Value: "lambda-runtime-cognito-identity"},
+					{Key: "Lambda-Runtime-Deadline-Ms", Value: "lambda-runtime-deadline-ms"},
+					{Key: "Lambda-Runtime-Invoked-Function-Arn", Value: "lambda-runtime-invoked-function-arn"},
 				},
-				ResponseBody: io.NopCloser(strings.NewReader(`test-response-body`)),
+				BodyBytes: []byte(`test-response-body`),
 			}),
 			host: "test-host",
 			expect: &invocation.NextOutput{
@@ -50,17 +50,17 @@ func Test_InvocationNext(t *testing.T) {
 		},
 		{
 			name: "ng: CallAPI returns error",
-			httpClient: newMockHTTPClient(&mockInput{
-				ResponseStatusCode: 200,
-				ResponseHeader: map[string][]string{
-					"Lambda-Runtime-Aws-Request-Id":       {"lambda-runtime-aws-request-id"},
-					"Lambda-Runtime-Trace-Id":             {"lambda-runtime-trace-id"},
-					"Lambda-Runtime-Client-Context":       {"lambda-runtime-client-context"},
-					"Lambda-Runtime-Cognito-Identity":     {"lambda-runtime-cognito-identity"},
-					"Lambda-Runtime-Deadline-Ms":          {"lambda-runtime-deadline-ms"},
-					"Lambda-Runtime-Invoked-Function-Arn": {"lambda-runtime-invoked-function-arn"},
+			httpClient: hcmock.New(&hcmock.MockInput{
+				StatusCode: 200,
+				Headers: []hcmock.Header{
+					{Key: "Lambda-Runtime-Aws-Request-Id", Value: "lambda-runtime-aws-request-id"},
+					{Key: "Lambda-Runtime-Trace-Id", Value: "lambda-runtime-trace-id"},
+					{Key: "Lambda-Runtime-Client-Context", Value: "lambda-runtime-client-context"},
+					{Key: "Lambda-Runtime-Cognito-Identity", Value: "lambda-runtime-cognito-identity"},
+					{Key: "Lambda-Runtime-Deadline-Ms", Value: "lambda-runtime-deadline-ms"},
+					{Key: "Lambda-Runtime-Invoked-Function-Arn", Value: "lambda-runtime-invoked-function-arn"},
 				},
-				ResponseBody: io.NopCloser(strings.NewReader(`test-response-body`)),
+				BodyBytes: []byte(`test-response-body`),
 			}),
 			host:    "\U00000001",
 			expect:  nil,
@@ -68,17 +68,17 @@ func Test_InvocationNext(t *testing.T) {
 		},
 		{
 			name: "ng: generateNextOutput returns error",
-			httpClient: newMockHTTPClient(&mockInput{
-				ResponseStatusCode: 403,
-				ResponseHeader: map[string][]string{
-					"Lambda-Runtime-Aws-Request-Id":       {"lambda-runtime-aws-request-id"},
-					"Lambda-Runtime-Trace-Id":             {"lambda-runtime-trace-id"},
-					"Lambda-Runtime-Client-Context":       {"lambda-runtime-client-context"},
-					"Lambda-Runtime-Cognito-Identity":     {"lambda-runtime-cognito-identity"},
-					"Lambda-Runtime-Deadline-Ms":          {"lambda-runtime-deadline-ms"},
-					"Lambda-Runtime-Invoked-Function-Arn": {"lambda-runtime-invoked-function-arn"},
+			httpClient: hcmock.New(&hcmock.MockInput{
+				StatusCode: 403,
+				Headers: []hcmock.Header{
+					{Key: "Lambda-Runtime-Aws-Request-Id", Value: "lambda-runtime-aws-request-id"},
+					{Key: "Lambda-Runtime-Trace-Id", Value: "lambda-runtime-trace-id"},
+					{Key: "Lambda-Runtime-Client-Context", Value: "lambda-runtime-client-context"},
+					{Key: "Lambda-Runtime-Cognito-Identity", Value: "lambda-runtime-cognito-identity"},
+					{Key: "Lambda-Runtime-Deadline-Ms", Value: "lambda-runtime-deadline-ms"},
+					{Key: "Lambda-Runtime-Invoked-Function-Arn", Value: "lambda-runtime-invoked-function-arn"},
 				},
-				ResponseBody: io.NopCloser(strings.NewReader(`///`)),
+				BodyBytes: []byte(`///`),
 			}),
 			host:    "test-host",
 			expect:  nil,
@@ -212,9 +212,9 @@ func Test_InvocationResponse(t *testing.T) {
 	}{
 		{
 			name: "ok",
-			httpClient: newMockHTTPClient(&mockInput{
-				ResponseStatusCode: 202,
-				ResponseBody:       io.NopCloser(strings.NewReader(`{"status":"test-status"}`)),
+			httpClient: hcmock.New(&hcmock.MockInput{
+				StatusCode: 202,
+				BodyBytes:  []byte(`{"status":"test-status"}`),
 			}),
 			in: &invocation.ResponseInput{
 				AWSRequestID: "test-request-id",
@@ -229,9 +229,9 @@ func Test_InvocationResponse(t *testing.T) {
 		},
 		{
 			name: "ng: CallAPI returns error",
-			httpClient: newMockHTTPClient(&mockInput{
-				ResponseStatusCode: 202,
-				ResponseBody:       io.NopCloser(strings.NewReader(`{"status":"test-status"}`)),
+			httpClient: hcmock.New(&hcmock.MockInput{
+				StatusCode: 202,
+				BodyBytes:  []byte(`{"status":"test-status"}`),
 			}),
 			in: &invocation.ResponseInput{
 				AWSRequestID: "test-request-id",
@@ -243,9 +243,9 @@ func Test_InvocationResponse(t *testing.T) {
 		},
 		{
 			name: "ng: AWSRequestID is empty",
-			httpClient: newMockHTTPClient(&mockInput{
-				ResponseStatusCode: 202,
-				ResponseBody:       io.NopCloser(strings.NewReader(`{"status":"test-status"}`)),
+			httpClient: hcmock.New(&hcmock.MockInput{
+				StatusCode: 202,
+				BodyBytes:  []byte(`{"status":"test-status"}`),
 			}),
 			in: &invocation.ResponseInput{
 				Response: strings.NewReader("test-response"),
@@ -256,9 +256,9 @@ func Test_InvocationResponse(t *testing.T) {
 		},
 		{
 			name: "ng: Response is nil",
-			httpClient: newMockHTTPClient(&mockInput{
-				ResponseStatusCode: 202,
-				ResponseBody:       io.NopCloser(strings.NewReader(`{"status":"test-status"}`)),
+			httpClient: hcmock.New(&hcmock.MockInput{
+				StatusCode: 202,
+				BodyBytes:  []byte(`{"status":"test-status"}`),
 			}),
 			in: &invocation.ResponseInput{
 				AWSRequestID: "test-request-id",
@@ -269,9 +269,9 @@ func Test_InvocationResponse(t *testing.T) {
 		},
 		{
 			name: "ng: ResponseInput is nil",
-			httpClient: newMockHTTPClient(&mockInput{
-				ResponseStatusCode: 202,
-				ResponseBody:       io.NopCloser(strings.NewReader(`{"status":"test-status"}`)),
+			httpClient: hcmock.New(&hcmock.MockInput{
+				StatusCode: 202,
+				BodyBytes:  []byte(`{"status":"test-status"}`),
 			}),
 			in:      nil,
 			host:    "test-host",
@@ -280,9 +280,9 @@ func Test_InvocationResponse(t *testing.T) {
 		},
 		{
 			name: "ng: generateResponseOutput returns error",
-			httpClient: newMockHTTPClient(&mockInput{
-				ResponseStatusCode: 403,
-				ResponseBody:       io.NopCloser(strings.NewReader(`///`)),
+			httpClient: hcmock.New(&hcmock.MockInput{
+				StatusCode: 403,
+				BodyBytes:  []byte(`///`),
 			}),
 			in: &invocation.ResponseInput{
 				AWSRequestID: "test-request-id",
