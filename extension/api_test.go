@@ -16,6 +16,7 @@ func Test_EventNext(t *testing.T) {
 		name       string
 		httpClient *http.Client
 		host       string
+		in         *extension.EventNextInput
 		expect     *extension.EventNextOutput
 		wantErr    bool
 	}{
@@ -29,6 +30,9 @@ func Test_EventNext(t *testing.T) {
 				BodyBytes: []byte(`{"eventType":"INVOKE","deadlineMs":123456,"requestId":"aws-request-id","invokedFunctionArn":"function-arn","tracing":{"type":"X-Amzn-Trace-Id","value":"tracing-value"}}`),
 			}),
 			host: "test-host",
+			in: &extension.EventNextInput{
+				LambdaExtensionIdentifier: "test",
+			},
 			expect: &extension.EventNextOutput{
 				StatusCode:                     200,
 				LambdaExtensionEventIdentifier: "lambda-extension-event-identifier",
@@ -50,6 +54,9 @@ func Test_EventNext(t *testing.T) {
 				BodyBytes: []byte(`{"eventType":"SHUTDOWN","shutdownReason":"test down","deadlineMs":123456}`),
 			}),
 			host: "test-host",
+			in: &extension.EventNextInput{
+				LambdaExtensionIdentifier: "test",
+			},
 			expect: &extension.EventNextOutput{
 				StatusCode:                     200,
 				LambdaExtensionEventIdentifier: "lambda-extension-event-identifier",
@@ -60,6 +67,55 @@ func Test_EventNext(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "ok: event type SHUTDOWN",
+			httpClient: hcmock.New(&hcmock.MockInput{
+				StatusCode: 200,
+				Headers: []hcmock.Header{
+					{Key: "Lambda-Extension-Event-Identifier", Value: "lambda-extension-event-identifier"},
+				},
+				BodyBytes: []byte(`{"eventType":"SHUTDOWN","shutdownReason":"test down","deadlineMs":123456}`),
+			}),
+			host: "test-host",
+			in: &extension.EventNextInput{
+				LambdaExtensionIdentifier: "test",
+			},
+			expect: &extension.EventNextOutput{
+				StatusCode:                     200,
+				LambdaExtensionEventIdentifier: "lambda-extension-event-identifier",
+				EventType:                      "SHUTDOWN",
+				DeadlineMs:                     123456,
+				ShutdownReason:                 "test down",
+			},
+			wantErr: false,
+		},
+		{
+			name: "ng: EventNextInput is nil",
+			httpClient: hcmock.New(&hcmock.MockInput{
+				StatusCode: 200,
+				Headers: []hcmock.Header{
+					{Key: "Lambda-Extension-Event-Identifier", Value: "lambda-extension-event-identifier"},
+				},
+				BodyBytes: []byte(`{"eventType":"SHUTDOWN","shutdownReason":"test down","deadlineMs":123456}`),
+			}),
+			host:    "test-host",
+			expect:  nil,
+			wantErr: true,
+		},
+		{
+			name: "ng: EventNextInput is empty",
+			httpClient: hcmock.New(&hcmock.MockInput{
+				StatusCode: 200,
+				Headers: []hcmock.Header{
+					{Key: "Lambda-Extension-Event-Identifier", Value: "lambda-extension-event-identifier"},
+				},
+				BodyBytes: []byte(`{"eventType":"SHUTDOWN","shutdownReason":"test down","deadlineMs":123456}`),
+			}),
+			host:    "test-host",
+			in:      &extension.EventNextInput{},
+			expect:  nil,
+			wantErr: true,
+		},
+		{
 			name: "ng: CallAPI returns error",
 			httpClient: hcmock.New(&hcmock.MockInput{
 				StatusCode: 200,
@@ -68,11 +124,15 @@ func Test_EventNext(t *testing.T) {
 				},
 				BodyBytes: []byte(`{"eventType":"INVOKE","deadlineMs":123456,"requestId":"aws-request-id","invokedFunctionArn":"function-arn","tracing":{"type":"X-Amzn-Trace-Id","value":"tracing-value"}}`),
 			}),
-			host:    "\U00000001",
+			host: "\U00000001",
+			in: &extension.EventNextInput{
+				LambdaExtensionIdentifier: "test",
+			},
 			expect:  nil,
 			wantErr: true,
 		},
 		{
+			name: "ng: generateNextOutput returns error",
 			httpClient: hcmock.New(&hcmock.MockInput{
 				StatusCode: 200,
 				Headers: []hcmock.Header{
@@ -80,7 +140,10 @@ func Test_EventNext(t *testing.T) {
 				},
 				BodyBytes: []byte(`///`),
 			}),
-			host:    "test-host",
+			host: "test-host",
+			in: &extension.EventNextInput{
+				LambdaExtensionIdentifier: "test",
+			},
 			expect:  nil,
 			wantErr: true,
 		},
@@ -97,7 +160,7 @@ func Test_EventNext(t *testing.T) {
 
 			asst.NoError(err)
 
-			out, err := extension.EventNext(context.Background(), ac)
+			out, err := extension.EventNext(context.Background(), ac, c.in)
 			if c.wantErr {
 				asst.Error(err, err)
 				asst.Nil(out)
