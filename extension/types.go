@@ -1,5 +1,10 @@
 package extension
 
+type EventNextInput struct {
+	// Unique identifier for extension.
+	LambdaExtensionIdentifier string
+}
+
 type EventNextOutput struct {
 	// http status code
 	StatusCode int `json:"-"`

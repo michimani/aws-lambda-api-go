@@ -13,6 +13,10 @@ import (
 const (
 	eventNextEndpointFmt string = "http://%s/2020-01-01/extension/event/next"
 
+	// Request Header
+	requestHeaderLambdaExtensionIdentifier string = "Lambda-Extension-Identifier"
+
+	// Response Header
 	responseHeaderLambdaExtensionEventIdentifier string = "Lambda-Extension-Event-Identifier"
 )
 
@@ -20,9 +24,19 @@ const (
 // This is an iterator-style blocking API call. Response contains event JSON document.
 //
 // https://docs.aws.amazon.com/lambda/latest/dg/runtimes-extensions-api.html#extensions-api-next
-func EventNext(ctx context.Context, client alago.AlagoClient) (*EventNextOutput, error) {
+func EventNext(ctx context.Context, client alago.AlagoClient, in *EventNextInput) (*EventNextOutput, error) {
+	if in == nil {
+		return nil, fmt.Errorf("EventNextInput is nil")
+	}
+	if in.LambdaExtensionIdentifier == "" {
+		return nil, fmt.Errorf("EventNextInput.LambdaExtensionIdentifier is empty")
+	}
+	hs := []internal.Header{
+		{Key: requestHeaderLambdaExtensionIdentifier, Value: in.LambdaExtensionIdentifier},
+	}
+
 	url := fmt.Sprintf(eventNextEndpointFmt, client.Host())
-	sc, h, b, err := internal.CallAPI(context.Background(), client, http.MethodGet, url, nil)
+	sc, h, b, err := internal.CallAPI(context.Background(), client, http.MethodGet, url, nil, hs...)
 	if err != nil {
 		return nil, err
 	}
