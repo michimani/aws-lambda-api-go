@@ -23,6 +23,7 @@ func Test_CallAPI(t *testing.T) {
 		httpClient *http.Client
 		method     string
 		url        string
+		headers    []internal.Header
 		expect     expect
 		wantErr    bool
 	}{
@@ -57,6 +58,32 @@ func Test_CallAPI(t *testing.T) {
 			}),
 			method: "GET",
 			url:    "https://example.com",
+			expect: expect{
+				statusCode: 200,
+				header: map[string][]string{
+					"Test-Header-Name": {"test-header-value"},
+				},
+				body: nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "ok: custom headers",
+			httpClient: hcmock.New(&hcmock.MockInput{
+				StatusCode: 200,
+				Headers: []hcmock.Header{
+					{Key: "Test-Header-Name", Value: "test-header-value"},
+				},
+				BodyBytes: nil,
+			}),
+			method: "GET",
+			url:    "https://example.com",
+			headers: []internal.Header{
+				{
+					Key:   "additional-header",
+					Value: "additional-header-value",
+				},
+			},
 			expect: expect{
 				statusCode: 200,
 				header: map[string][]string{
@@ -120,7 +147,7 @@ func Test_CallAPI(t *testing.T) {
 
 			asst.NoError(err)
 
-			sc, h, b, err := internal.CallAPI(context.Background(), ac, c.method, c.url, nil)
+			sc, h, b, err := internal.CallAPI(context.Background(), ac, c.method, c.url, nil, c.headers...)
 			if c.wantErr {
 				asst.Error(err, err)
 				asst.Equal(0, sc)
