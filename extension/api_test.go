@@ -11,6 +11,245 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func Test_Register(t *testing.T) {
+	cases := []struct {
+		name       string
+		httpClient *http.Client
+		host       string
+		in         *extension.RegisterInput
+		expect     *extension.RegisterOutput
+		wantErr    bool
+	}{
+		{
+			name: "ok",
+			httpClient: hcmock.New(&hcmock.MockInput{
+				StatusCode: 200,
+				Headers: []hcmock.Header{
+					{Key: "Lambda-Extension-Identifier", Value: "lambda-extension-identifier"},
+				},
+				BodyBytes: []byte(`{"functionName":"my-function","functionVersion":"$LATEST","handler":"lambda_handler"}`),
+			}),
+			host: "test-host",
+			in: &extension.RegisterInput{
+				LambdaExtensionName: "test",
+				Events: []extension.EventType{
+					extension.EventTypeInvoke,
+					extension.EventTypeShutdown,
+				},
+			},
+			expect: &extension.RegisterOutput{
+				StatusCode:                200,
+				LambdaExtensionIdentifier: "lambda-extension-identifier",
+				FunctionName:              "my-function",
+				FunctionVersion:           "$LATEST",
+				Handler:                   "lambda_handler",
+			},
+			wantErr: false,
+		},
+		{
+			name: "ok: with account id",
+			httpClient: hcmock.New(&hcmock.MockInput{
+				StatusCode: 200,
+				Headers: []hcmock.Header{
+					{Key: "Lambda-Extension-Identifier", Value: "lambda-extension-identifier"},
+				},
+				BodyBytes: []byte(`{"functionName":"my-function","functionVersion":"$LATEST","handler":"lambda_handler","accountId":"112233"}`),
+			}),
+			host: "test-host",
+			in: &extension.RegisterInput{
+				LambdaExtensionName:          "test",
+				LambdaExtensionAcceptFeature: "accountId",
+				Events: []extension.EventType{
+					extension.EventTypeInvoke,
+					extension.EventTypeShutdown,
+				},
+			},
+			expect: &extension.RegisterOutput{
+				StatusCode:                200,
+				LambdaExtensionIdentifier: "lambda-extension-identifier",
+				FunctionName:              "my-function",
+				FunctionVersion:           "$LATEST",
+				Handler:                   "lambda_handler",
+				AccountID:                 "112233",
+			},
+			wantErr: false,
+		},
+		{
+			name: "ng: RegisterInput is nil",
+			httpClient: hcmock.New(&hcmock.MockInput{
+				StatusCode: 200,
+				Headers: []hcmock.Header{
+					{Key: "Lambda-Extension-Identifier", Value: "lambda-extension-identifier"},
+				},
+				BodyBytes: []byte(`{"functionName":"my-function","functionVersion":"$LATEST","handler":"lambda_handler"`),
+			}),
+			host:    "test-host",
+			expect:  nil,
+			wantErr: true,
+		},
+		{
+			name: "ng: RegisterInput.LambdaExtensionName is empty",
+			httpClient: hcmock.New(&hcmock.MockInput{
+				StatusCode: 200,
+				Headers: []hcmock.Header{
+					{Key: "Lambda-Extension-Identifier", Value: "lambda-extension-identifier"},
+				},
+				BodyBytes: []byte(`{"functionName":"my-function","functionVersion":"$LATEST","handler":"lambda_handler"`),
+			}),
+			host:    "test-host",
+			in:      &extension.RegisterInput{},
+			expect:  nil,
+			wantErr: true,
+		},
+		{
+			name: "ng: CallAPI returns error",
+			httpClient: hcmock.New(&hcmock.MockInput{
+				StatusCode: 200,
+				Headers: []hcmock.Header{
+					{Key: "Lambda-Extension-Identifier", Value: "lambda-extension-identifier"},
+				},
+				BodyBytes: []byte(`{"functionName":"my-function","functionVersion":"$LATEST","handler":"lambda_handler"}`),
+			}),
+			host: "\U00000001",
+			in: &extension.RegisterInput{
+				LambdaExtensionName: "test",
+			},
+			expect:  nil,
+			wantErr: true,
+		},
+		{
+			name: "ng: generateRegisterOutput returns error",
+			httpClient: hcmock.New(&hcmock.MockInput{
+				StatusCode: 200,
+				Headers: []hcmock.Header{
+					{Key: "Lambda-Extension-Identifier", Value: "lambda-extension-identifier"},
+				},
+				BodyBytes: []byte(`///`),
+			}),
+			host: "test-host",
+			in: &extension.RegisterInput{
+				LambdaExtensionName: "test",
+			},
+			expect:  nil,
+			wantErr: true,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(tt *testing.T) {
+			asst := assert.New(tt)
+			tt.Setenv("AWS_LAMBDA_RUNTIME_API", c.host)
+
+			ac, err := alago.NewClient(&alago.NewClientInput{
+				HttpClient: c.httpClient,
+			})
+
+			asst.NoError(err)
+
+			out, err := extension.Register(context.Background(), ac, c.in)
+			if c.wantErr {
+				asst.Error(err, err)
+				asst.Nil(out)
+				return
+			}
+
+			asst.NoError(err)
+			asst.NotNil(out)
+			asst.Equal(*c.expect, *out)
+			asst.Equal(*c.expect, *out)
+			asst.Equal(*c.expect, *out)
+		})
+	}
+}
+
+func Test_generateEventRegisterOutput(t *testing.T) {
+	cases := []struct {
+		name       string
+		statusCode int
+		header     http.Header
+		body       []byte
+		expect     *extension.RegisterOutput
+		wantErr    bool
+	}{
+		{
+			name:       "ok",
+			statusCode: 200,
+			header: map[string][]string{
+				"Lambda-Extension-Identifier": {"lambda-extension-identifier"},
+			},
+			body: []byte(`{"functionName":"my-function","functionVersion":"$LATEST","handler":"lambda_handler"}`),
+			expect: &extension.RegisterOutput{
+				StatusCode:                200,
+				LambdaExtensionIdentifier: "lambda-extension-identifier",
+				FunctionName:              "my-function",
+				FunctionVersion:           "$LATEST",
+				Handler:                   "lambda_handler",
+			},
+			wantErr: false,
+		},
+		{
+			name:       "ok: with accountId",
+			statusCode: 200,
+			header: map[string][]string{
+				"Lambda-Extension-Identifier": {"lambda-extension-identifier"},
+			},
+			body: []byte(`{"functionName":"my-function","functionVersion":"$LATEST","handler":"lambda_handler","accountId":"112233"}`),
+			expect: &extension.RegisterOutput{
+				StatusCode:                200,
+				LambdaExtensionIdentifier: "lambda-extension-identifier",
+				FunctionName:              "my-function",
+				FunctionVersion:           "$LATEST",
+				Handler:                   "lambda_handler",
+				AccountID:                 "112233",
+			},
+			wantErr: false,
+		},
+		{
+			name:       "ok: not OK status code",
+			statusCode: 403,
+			header: map[string][]string{
+				"Lambda-Extension-Identifier": {"lambda-extension-identifier"},
+			},
+			body: []byte(`{"errorMessage":"test-error-message", "errorType":"test-error-type"}`),
+			expect: &extension.RegisterOutput{
+				StatusCode:                403,
+				LambdaExtensionIdentifier: "lambda-extension-identifier",
+				Error: &extension.ErrorResponse{
+					ErrorMessage: "test-error-message",
+					ErrorType:    "test-error-type",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name:       "ng: failed to unmarshal error response",
+			statusCode: 403,
+			header: map[string][]string{
+				"Lambda-Extension-Identifier": {"lambda-extension-identifier"},
+			},
+			body:    []byte(`///`),
+			expect:  nil,
+			wantErr: true,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(tt *testing.T) {
+			asst := assert.New(tt)
+
+			out, err := extension.Exported_generateRegisterOutput(c.statusCode, c.header, c.body)
+			if c.wantErr {
+				asst.Error(err)
+				asst.Nil(out)
+				return
+			}
+
+			asst.NoError(err)
+			asst.Equal(*c.expect, *out)
+		})
+	}
+}
+
 func Test_EventNext(t *testing.T) {
 	cases := []struct {
 		name       string

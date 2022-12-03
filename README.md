@@ -21,7 +21,7 @@ This is a client library for Go language to use AWS Lambda's Runtime API, Extens
 
 [Lambda Extensions API - AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-extensions-api.html)
 
-- [ ] `POST /extension/register`
+- [x] `POST /extension/register`
 - [x] `GET /extension/event/next`
 - [ ] `POST /extension/init/error`
 - [ ] `POST /extension/exit/error`

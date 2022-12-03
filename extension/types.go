@@ -1,5 +1,71 @@
 package extension
 
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"io"
+)
+
+type EventType string
+
+const (
+	EventTypeInvoke   EventType = "INVOKE"
+	EventTypeShutdown EventType = "SHUTDOWN"
+)
+
+type events struct {
+	Events []EventType `json:"events"`
+}
+
+func (es *events) toRequestBody() (io.Reader, error) {
+	if es == nil {
+		return nil, errors.New("es is nil")
+	}
+
+	j, err := json.Marshal(es)
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes.NewReader(j), nil
+}
+
+type RegisterInput struct {
+	// Public extension name.
+	LambdaExtensionName string
+
+	// Use this to specify optional Extensions features. Comma separated string. Available features:
+	// * `accountId` - the register response will contain the account id associated with the Lambda function for which the Extension is being registered
+	LambdaExtensionAcceptFeature string
+
+	// EventTypes that the extension want to receive.
+	Events []EventType
+}
+
+type RegisterOutput struct {
+	// http status code
+	StatusCode int `json:"-"`
+
+	// Generated unique identifier for public extension name.
+	LambdaExtensionIdentifier string `json:"-"`
+
+	// Function Name.
+	FunctionName string `json:"functionName"`
+
+	// Function version. (e.g. $LATEST)
+	FunctionVersion string `json:"functionVersion"`
+
+	// Handler of the function.
+	Handler string `json:"handler"`
+
+	// AWS AccountID. Filled with only registration with `accountId` feature.
+	AccountID string `json:"accountId"`
+
+	// The error response.
+	Error *ErrorResponse
+}
+
 type EventNextInput struct {
 	// Unique identifier for extension.
 	LambdaExtensionIdentifier string
