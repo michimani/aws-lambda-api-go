@@ -15,8 +15,9 @@ const (
 	eventNextEndpointFmt string = "http://%s/2020-01-01/extension/event/next"
 
 	// Request Header
-	requestHeaderLambdaExtensionIdentifier    string = "Lambda-Extension-Identifier"
+	requestHeaderLambdaExtensionName          string = "Lambda-Extension-Name"
 	requestHeaderLambdaExtensionAcceptFeature string = "Lambda-Extension-Accept-Feature"
+	requestHeaderLambdaExtensionIdentifier    string = "Lambda-Extension-Identifier"
 
 	// Response Header
 	responseHeaderLambdaExtensionEventIdentifier string = "Lambda-Extension-Event-Identifier"
@@ -34,7 +35,7 @@ func Register(ctx context.Context, client alago.AlagoClient, in *RegisterInput) 
 		return nil, fmt.Errorf("RegisterInput.LambdaExtensionName is empty")
 	}
 	hs := []internal.Header{
-		{Key: requestHeaderLambdaExtensionIdentifier, Value: in.LambdaExtensionName},
+		{Key: requestHeaderLambdaExtensionName, Value: in.LambdaExtensionName},
 	}
 
 	if in.LambdaExtensionAcceptFeature == "" {
