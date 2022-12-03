@@ -13,6 +13,11 @@ This is a version of CHANGELOG less than v1.0.0
 * Telemetry API
 * Logs API
 
+v0.1.2 (2022-12-04)
+===
+
+* Fix request header for `POST /extension/register` 
+
 v0.1.1 (2022-12-04)
 ===
 
