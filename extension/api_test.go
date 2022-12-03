@@ -27,12 +27,15 @@ func Test_Register(t *testing.T) {
 				Headers: []hcmock.Header{
 					{Key: "Lambda-Extension-Identifier", Value: "lambda-extension-identifier"},
 				},
-				BodyBytes: []byte(`{"functionName":"my-function","functionVersion":"$LATEST","handler":"lambda_handler"}
-				`),
+				BodyBytes: []byte(`{"functionName":"my-function","functionVersion":"$LATEST","handler":"lambda_handler"}`),
 			}),
 			host: "test-host",
 			in: &extension.RegisterInput{
 				LambdaExtensionName: "test",
+				Events: []extension.EventType{
+					extension.EventTypeInvoke,
+					extension.EventTypeShutdown,
+				},
 			},
 			expect: &extension.RegisterOutput{
 				StatusCode:                200,
@@ -56,6 +59,10 @@ func Test_Register(t *testing.T) {
 			in: &extension.RegisterInput{
 				LambdaExtensionName:          "test",
 				LambdaExtensionAcceptFeature: "accountId",
+				Events: []extension.EventType{
+					extension.EventTypeInvoke,
+					extension.EventTypeShutdown,
+				},
 			},
 			expect: &extension.RegisterOutput{
 				StatusCode:                200,
@@ -170,8 +177,7 @@ func Test_generateEventRegisterOutput(t *testing.T) {
 			header: map[string][]string{
 				"Lambda-Extension-Identifier": {"lambda-extension-identifier"},
 			},
-			body: []byte(`{"functionName":"my-function","functionVersion":"$LATEST","handler":"lambda_handler"}
-			`),
+			body: []byte(`{"functionName":"my-function","functionVersion":"$LATEST","handler":"lambda_handler"}`),
 			expect: &extension.RegisterOutput{
 				StatusCode:                200,
 				LambdaExtensionIdentifier: "lambda-extension-identifier",
@@ -187,8 +193,7 @@ func Test_generateEventRegisterOutput(t *testing.T) {
 			header: map[string][]string{
 				"Lambda-Extension-Identifier": {"lambda-extension-identifier"},
 			},
-			body: []byte(`{"functionName":"my-function","functionVersion":"$LATEST","handler":"lambda_handler","accountId":"112233"}
-			`),
+			body: []byte(`{"functionName":"my-function","functionVersion":"$LATEST","handler":"lambda_handler","accountId":"112233"}`),
 			expect: &extension.RegisterOutput{
 				StatusCode:                200,
 				LambdaExtensionIdentifier: "lambda-extension-identifier",
