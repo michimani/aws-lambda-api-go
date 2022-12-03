@@ -147,7 +147,7 @@ func Test_CallAPI(t *testing.T) {
 
 			asst.NoError(err)
 
-			sc, h, b, err := internal.CallAPI(context.Background(), ac, c.method, c.url, nil)
+			sc, h, b, err := internal.CallAPI(context.Background(), ac, c.method, c.url, nil, c.headers...)
 			if c.wantErr {
 				asst.Error(err, err)
 				asst.Equal(0, sc)
