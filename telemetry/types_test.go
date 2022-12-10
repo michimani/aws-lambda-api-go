@@ -157,6 +157,12 @@ func Test_inputToRequestBody(t *testing.T) {
 			expect:  ``,
 			wantErr: true,
 		},
+		{
+			name:    "ng: SubscribeInput is nil",
+			in:      nil,
+			expect:  ``,
+			wantErr: true,
+		},
 	}
 
 	for _, c := range cases {
