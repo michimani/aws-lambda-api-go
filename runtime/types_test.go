@@ -1,9 +1,9 @@
-package invocation_test
+package runtime_test
 
 import (
 	"testing"
 
-	"github.com/michimani/aws-lambda-api-go/runtime/invocation"
+	"github.com/michimani/aws-lambda-api-go/runtime"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,14 +16,14 @@ func Test_UnmarshalEventResponse(t *testing.T) {
 
 	cases := []struct {
 		name    string
-		o       *invocation.NextOutput
+		o       *runtime.NextOutput
 		target  *testEvent
 		expect  testEvent
 		wantErr bool
 	}{
 		{
 			name: "ok",
-			o: &invocation.NextOutput{
+			o: &runtime.NextOutput{
 				RawEventResponse: []byte(`{"eventName":"test", "count":100, "isTest":true}`),
 			},
 			target: &testEvent{},
@@ -47,7 +47,7 @@ func Test_UnmarshalEventResponse(t *testing.T) {
 		},
 		{
 			name: "ng: failed to unmarshal json",
-			o: &invocation.NextOutput{
+			o: &runtime.NextOutput{
 				RawEventResponse: []byte(`///`),
 			},
 			target: nil,

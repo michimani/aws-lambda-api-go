@@ -1,4 +1,4 @@
-package invocation
+package runtime
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 
 	"github.com/michimani/aws-lambda-api-go/alago"
 	"github.com/michimani/aws-lambda-api-go/internal"
-	"github.com/michimani/aws-lambda-api-go/runtime"
 )
 
 const (
@@ -47,7 +46,7 @@ func generateNextOutput(sc int, header http.Header, body []byte) (*NextOutput, e
 	out.StatusCode = sc
 
 	if sc != http.StatusOK {
-		var errRes runtime.ErrorResponse
+		var errRes ErrorResponse
 		if err := json.Unmarshal(body, &errRes); err != nil {
 			return nil, err
 		}
@@ -99,7 +98,7 @@ func generateResponseOutput(sc int, body []byte) (*ResponseOutput, error) {
 	out.StatusCode = sc
 
 	if sc != http.StatusAccepted {
-		var errRes runtime.ErrorResponse
+		var errRes ErrorResponse
 		if err := json.Unmarshal(body, &errRes); err != nil {
 			return nil, err
 		}

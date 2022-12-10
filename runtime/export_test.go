@@ -1,4 +1,4 @@
-package invocation
+package runtime
 
 var (
 	Exported_generateNextOutput     = generateNextOutput
