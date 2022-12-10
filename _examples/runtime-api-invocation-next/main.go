@@ -7,7 +7,7 @@ import (
 
 	runtime "github.com/aws/aws-lambda-go/lambda"
 	"github.com/michimani/aws-lambda-api-go/alago"
-	"github.com/michimani/aws-lambda-api-go/runtime/invocation"
+	alagoruntime "github.com/michimani/aws-lambda-api-go/runtime"
 )
 
 type Response struct {
@@ -31,7 +31,7 @@ func handleRequest(ctx context.Context, event ExampleEvent) (*Response, error) {
 		return nil, err
 	}
 
-	out, err := invocation.InvocationNext(context.Background(), ac)
+	out, err := alagoruntime.InvocationNext(context.Background(), ac)
 	if err != nil {
 		return nil, err
 	}
