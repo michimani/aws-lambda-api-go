@@ -53,10 +53,7 @@ func generateSubscribeOutput(sc int, header http.Header, body []byte) (*Subscrib
 	if sc != http.StatusOK {
 		var errRes ErrorResponse
 		if err := json.Unmarshal(body, &errRes); err != nil {
-			if err, ok := err.(*json.SyntaxError); ok {
-				return nil, fmt.Errorf("body: %s statusCode:%d err%s", string(body), sc, err.Error())
-			}
-			return nil, err
+			return nil, fmt.Errorf("%v statusCode:%d, body:%s", err, sc, string(body))
 		}
 		out.Error = &errRes
 		return &out, nil
