@@ -1,4 +1,4 @@
-package invocation_test
+package runtime_test
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 
 	"github.com/michimani/aws-lambda-api-go/alago"
 	"github.com/michimani/aws-lambda-api-go/runtime"
-	"github.com/michimani/aws-lambda-api-go/runtime/invocation"
 	"github.com/michimani/http-client-mock/hcmock"
 	"github.com/stretchr/testify/assert"
 )
@@ -18,7 +17,7 @@ func Test_InvocationNext(t *testing.T) {
 		name       string
 		httpClient *http.Client
 		host       string
-		expect     *invocation.NextOutput
+		expect     *runtime.NextOutput
 		wantErr    bool
 	}{
 		{
@@ -36,7 +35,7 @@ func Test_InvocationNext(t *testing.T) {
 				BodyBytes: []byte(`test-response-body`),
 			}),
 			host: "test-host",
-			expect: &invocation.NextOutput{
+			expect: &runtime.NextOutput{
 				StatusCode:         200,
 				AWSRequestID:       "lambda-runtime-aws-request-id",
 				TraceID:            "lambda-runtime-trace-id",
@@ -97,7 +96,7 @@ func Test_InvocationNext(t *testing.T) {
 
 			asst.NoError(err)
 
-			out, err := invocation.InvocationNext(context.Background(), ac)
+			out, err := runtime.InvocationNext(context.Background(), ac)
 			if c.wantErr {
 				asst.Error(err, err)
 				asst.Nil(out)
@@ -119,7 +118,7 @@ func Test_generateNextOutput(t *testing.T) {
 		statusCode int
 		header     http.Header
 		body       []byte
-		expect     *invocation.NextOutput
+		expect     *runtime.NextOutput
 		wantErr    bool
 	}{
 		{
@@ -134,7 +133,7 @@ func Test_generateNextOutput(t *testing.T) {
 				"Lambda-Runtime-Invoked-Function-Arn": {"lambda-runtime-invoked-function-arn"},
 			},
 			body: []byte("test-response-body"),
-			expect: &invocation.NextOutput{
+			expect: &runtime.NextOutput{
 				StatusCode:         200,
 				AWSRequestID:       "lambda-runtime-aws-request-id",
 				TraceID:            "lambda-runtime-trace-id",
@@ -158,7 +157,7 @@ func Test_generateNextOutput(t *testing.T) {
 				"Lambda-Runtime-Invoked-Function-Arn": {"lambda-runtime-invoked-function-arn"},
 			},
 			body: []byte(`{"errorMessage":"test-error-message", "errorType":"test-error-type"}`),
-			expect: &invocation.NextOutput{
+			expect: &runtime.NextOutput{
 				StatusCode: 403,
 				Error: &runtime.ErrorResponse{
 					ErrorMessage: "test-error-message",
@@ -188,7 +187,7 @@ func Test_generateNextOutput(t *testing.T) {
 		t.Run(c.name, func(tt *testing.T) {
 			asst := assert.New(tt)
 
-			out, err := invocation.Exported_generateNextOutput(c.statusCode, c.header, c.body)
+			out, err := runtime.Exported_generateNextOutput(c.statusCode, c.header, c.body)
 			if c.wantErr {
 				asst.Error(err)
 				asst.Nil(out)
@@ -205,9 +204,9 @@ func Test_InvocationResponse(t *testing.T) {
 	cases := []struct {
 		name       string
 		httpClient *http.Client
-		in         *invocation.ResponseInput
+		in         *runtime.ResponseInput
 		host       string
-		expect     *invocation.ResponseOutput
+		expect     *runtime.ResponseOutput
 		wantErr    bool
 	}{
 		{
@@ -216,12 +215,12 @@ func Test_InvocationResponse(t *testing.T) {
 				StatusCode: 202,
 				BodyBytes:  []byte(`{"status":"test-status"}`),
 			}),
-			in: &invocation.ResponseInput{
+			in: &runtime.ResponseInput{
 				AWSRequestID: "test-request-id",
 				Response:     strings.NewReader("test-response"),
 			},
 			host: "test-host",
-			expect: &invocation.ResponseOutput{
+			expect: &runtime.ResponseOutput{
 				StatusCode: 202,
 				Status:     "test-status",
 			},
@@ -233,7 +232,7 @@ func Test_InvocationResponse(t *testing.T) {
 				StatusCode: 202,
 				BodyBytes:  []byte(`{"status":"test-status"}`),
 			}),
-			in: &invocation.ResponseInput{
+			in: &runtime.ResponseInput{
 				AWSRequestID: "test-request-id",
 				Response:     strings.NewReader("test-response"),
 			},
@@ -247,7 +246,7 @@ func Test_InvocationResponse(t *testing.T) {
 				StatusCode: 202,
 				BodyBytes:  []byte(`{"status":"test-status"}`),
 			}),
-			in: &invocation.ResponseInput{
+			in: &runtime.ResponseInput{
 				Response: strings.NewReader("test-response"),
 			},
 			host:    "test-host",
@@ -260,7 +259,7 @@ func Test_InvocationResponse(t *testing.T) {
 				StatusCode: 202,
 				BodyBytes:  []byte(`{"status":"test-status"}`),
 			}),
-			in: &invocation.ResponseInput{
+			in: &runtime.ResponseInput{
 				AWSRequestID: "test-request-id",
 			},
 			host:    "test-host",
@@ -284,7 +283,7 @@ func Test_InvocationResponse(t *testing.T) {
 				StatusCode: 403,
 				BodyBytes:  []byte(`///`),
 			}),
-			in: &invocation.ResponseInput{
+			in: &runtime.ResponseInput{
 				AWSRequestID: "test-request-id",
 				Response:     strings.NewReader("test-response"),
 			},
@@ -305,7 +304,7 @@ func Test_InvocationResponse(t *testing.T) {
 
 			asst.NoError(err)
 
-			out, err := invocation.InvocationResponse(context.Background(), ac, c.in)
+			out, err := runtime.InvocationResponse(context.Background(), ac, c.in)
 			if c.wantErr {
 				asst.Error(err, err)
 				asst.Nil(out)
@@ -326,14 +325,14 @@ func Test_generateResponseOutput(t *testing.T) {
 		name       string
 		statusCode int
 		body       []byte
-		expect     *invocation.ResponseOutput
+		expect     *runtime.ResponseOutput
 		wantErr    bool
 	}{
 		{
 			name:       "ok",
 			statusCode: 202,
 			body:       []byte(`{"status":"test-status"}`),
-			expect: &invocation.ResponseOutput{
+			expect: &runtime.ResponseOutput{
 				StatusCode: 202,
 				Status:     "test-status",
 			},
@@ -343,7 +342,7 @@ func Test_generateResponseOutput(t *testing.T) {
 			name:       "ok: not OK status code",
 			statusCode: 403,
 			body:       []byte(`{"errorMessage":"test-error-message", "errorType":"test-error-type"}`),
-			expect: &invocation.ResponseOutput{
+			expect: &runtime.ResponseOutput{
 				StatusCode: 403,
 				Error: &runtime.ErrorResponse{
 					ErrorMessage: "test-error-message",
@@ -372,7 +371,7 @@ func Test_generateResponseOutput(t *testing.T) {
 		t.Run(c.name, func(tt *testing.T) {
 			asst := assert.New(tt)
 
-			out, err := invocation.Exported_generateResponseOutput(c.statusCode, c.body)
+			out, err := runtime.Exported_generateResponseOutput(c.statusCode, c.body)
 			if c.wantErr {
 				asst.Error(err)
 				asst.Nil(out)
