@@ -10,8 +10,11 @@ This is a version of CHANGELOG less than v1.0.0
 * Extension API
   * `POST /extension/init/error`
   * `POST /extension/exit/error`
-* Telemetry API
-* Logs API
+
+v0.2.0 (2022-12-10)
+===
+
+* Support `PUT /telemetry`
 
 v0.1.2 (2022-12-04)
 ===
