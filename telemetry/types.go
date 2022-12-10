@@ -46,15 +46,15 @@ type SubscribeInput struct {
 
 	// The maximum number of events to buffer in memory.
 	// min/default/max = 25/1,000/30,000
-	BufferMaxItems *int
+	BufferMaxItems *uint64
 
 	// The maximum volume of telemetry (in bytes) to buffer in memory.
 	// min/default/max = 262,144/262,144/1,048,576
-	BufferMaxBytes *int
+	BufferMaxBytes *uint64
 
 	// The maximum time (in milliseconds) to buffer a batch.
 	// min/default/max = 1,000/10,000/10,000
-	BufferTimeoutMs *int
+	BufferTimeoutMs *uint64
 }
 
 const schemaVersion = "2022-07-01"
@@ -72,15 +72,15 @@ type subscribeBodyDestination struct {
 }
 
 type subscribeBodyBuffering struct {
-	MaxItems  int `json:"maxItems"`
-	MaxBytes  int `json:"maxBytes"`
-	TimeoutMs int `json:"timeoutMs"`
+	MaxItems  uint64 `json:"maxItems"`
+	MaxBytes  uint64 `json:"maxBytes"`
+	TimeoutMs uint64 `json:"timeoutMs"`
 }
 
 const (
-	bufferingMaxItemsDefault  = 1000
-	bufferingMaxBytesDefault  = 256 * 1024
-	bufferingTimeoutMsDefault = 10000
+	bufferingMaxItemsDefault  uint64 = 1000
+	bufferingMaxBytesDefault  uint64 = 256 * 1024
+	bufferingTimeoutMsDefault uint64 = 10000
 )
 
 var defaultBuffering = subscribeBodyBuffering{

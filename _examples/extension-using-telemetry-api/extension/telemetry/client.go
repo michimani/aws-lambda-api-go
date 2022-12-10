@@ -31,7 +31,7 @@ func NewClient(hc *http.Client, l *logger.Logger) (*Client, error) {
 }
 
 func (c *Client) Subscribe(ctx context.Context, exId string, httpURI string) error {
-	bufTimeoutMs := 100
+	var bufTimeoutMs uint64 = 100
 
 	out, err := telemetry.Subscribe(ctx, c.alagoClient, &telemetry.SubscribeInput{
 		LambdaExtensionIdentifier: exId,

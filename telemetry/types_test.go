@@ -80,9 +80,9 @@ func Test_TelemetryType_Valid(t *testing.T) {
 
 func Test_inputToRequestBody(t *testing.T) {
 	var (
-		bufMaxItems     = 100
-		bufMaxBytes     = 512 * 1024
-		bufMaxTimeoutMs = 100
+		bufMaxItems     uint64 = 100
+		bufMaxBytes     uint64 = 512 * 1024
+		bufMaxTimeoutMs uint64 = 100
 	)
 
 	cases := []struct {
