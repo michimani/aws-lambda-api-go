@@ -28,7 +28,9 @@ This is a client library for Go language to use AWS Lambda's Runtime API, Extens
 
 ## Telemetry API
 
-- TODO
+[Lambda Telemetry API reference - AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/telemetry-api-reference.html)
+
+- [x] `PUT /telemetry`
 
 # License
 
