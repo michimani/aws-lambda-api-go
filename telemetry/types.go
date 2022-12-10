@@ -31,6 +31,10 @@ func (tt TelemetryType) Valid() bool {
 }
 
 type SubscribeInput struct {
+	// Generated unique identifier for public extension name.
+	// This value will be got in response header of POST /extension/register API.
+	LambdaExtensionIdentifier string
+
 	// The protocol that Lambda uses to send telemetry data. (Required)
 	DestinationProtocol DestinationProtocol
 

@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	subscribeEndpointFmt string = "http://%s/2022-07-01/telemetry"
+	subscribeEndpointFmt                   string = "http://%s/2022-07-01/telemetry"
+	requestHeaderLambdaExtensionIdentifier string = "Lambda-Extension-Identifier"
 )
 
 // To subscribe to a telemetry stream, a Lambda extension can send a Subscribe API request.
@@ -27,8 +28,12 @@ func Subscribe(ctx context.Context, client alago.AlagoClient, in *SubscribeInput
 		return nil, err
 	}
 
+	hs := []internal.Header{
+		{Key: requestHeaderLambdaExtensionIdentifier, Value: in.LambdaExtensionIdentifier},
+	}
+
 	url := fmt.Sprintf(subscribeEndpointFmt, client.Host())
-	sc, h, b, err := internal.CallAPI(context.Background(), client, http.MethodPut, url, reqBody)
+	sc, h, b, err := internal.CallAPI(context.Background(), client, http.MethodPut, url, reqBody, hs...)
 	if err != nil {
 		return nil, err
 	}
@@ -48,6 +53,9 @@ func generateSubscribeOutput(sc int, header http.Header, body []byte) (*Subscrib
 	if sc != http.StatusOK {
 		var errRes ErrorResponse
 		if err := json.Unmarshal(body, &errRes); err != nil {
+			if err, ok := err.(*json.SyntaxError); ok {
+				return nil, fmt.Errorf("body: %s statusCode:%d err%s", string(body), sc, err.Error())
+			}
 			return nil, err
 		}
 		out.Error = &errRes
