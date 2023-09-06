@@ -11,6 +11,12 @@ This is a version of CHANGELOG less than v1.0.0
   * `POST /extension/init/error`
   * `POST /extension/exit/error`
 
+v0.3.0 (2023-09-07)
+===
+
+* Bump Go version to 1.21
+
+
 v0.2.0 (2022-12-10)
 ===
 
